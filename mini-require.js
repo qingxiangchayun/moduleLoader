@@ -1,8 +1,7 @@
 ;(function(window){
 	
 	'use strict';
-
-	var define ;
+	
 	var moduleCache = null;
 
 	var moduleMap = {};
@@ -30,8 +29,7 @@
 
 	};
 
-
-	define = function(name, deps, callback){
+	var define = function(name, deps, callback){
 
 		// anonymous modules
 		if(typeof name != 'string'){ 
@@ -55,9 +53,7 @@
 		}else{
 			moduleCache = callback();
 		}
-
-
-	}
+	};
 	
 	window.define = define;
 
