@@ -1,4 +1,4 @@
-/*define(function(){
+define(function(){
 	'use strict';
 
 	var Tool = function(){
@@ -12,6 +12,5 @@
 	}
 
 	return Tool;
-});*/
+});
 
-//window.a = 'aaa';
