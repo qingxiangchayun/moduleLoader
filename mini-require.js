@@ -31,6 +31,8 @@
 
 	var define = function(name, deps, callback){
 
+		var depCount = 0;
+
 		// anonymous modules
 		if(typeof name != 'string'){ 
 			callback = deps;
@@ -45,11 +47,20 @@
 		}
 
 		if(deps.length){
-			deps.forEach(function(value, index ,array){
-				loadModule(value,function(m){
-					moduleCache = callback(m);
-				});
-			});
+			
+			for (var i=0, len=deps.length; i<len; i++){
+
+				(function(i){
+
+					depCount ++ ;
+
+					loadModule(deps[i], function(){
+
+					});
+
+				})(i)
+			}
+
 		}else{
 			moduleCache = callback();
 		}
@@ -58,3 +69,5 @@
 	window.define = define;
 
 })(window);
+
+// 推荐 https://github.com/sxzhangjia/tinyblog/blob/v1/static/js/g.js
