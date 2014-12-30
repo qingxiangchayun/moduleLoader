@@ -2,6 +2,7 @@
 	
 	'use strict';
 	
+	// 模块缓存
 	var moduleCache = null;
 
 	var moduleMap = {};
