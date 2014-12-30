@@ -5,6 +5,7 @@
 	// 模块缓存
 	var moduleCache = null;
 
+	// 模块映射 { 'a.js' : 'a' , 'b.js' : b}
 	var moduleMap = {};
 
 	var loadModule = function(name,callback){
@@ -23,9 +24,12 @@
 		oScript.onload = function(){
 			var moduleName = this.getAttribute('data-modulename');
 
-			alert(name)
+			console.log('name',name)
 
-			moduleMap[moduleName] = moduleCache;
+			// 关键代码 script onload完成 取缓存
+			moduleMap[moduleName] = moduleCache;  
+
+			console.log('moduleCache==',moduleCache);
 
 			callback(moduleName, moduleCache);
 
@@ -34,20 +38,44 @@
 
 	};
 
+	var util = {
+
+	};
+
+	// 使用AMD require写法
+	// define(id?,[]?,factory(mod1,mod2){});
+
+	// { 'a.js' : 'a' , 'b.js' : b} --> ['a','b']  a/b的顺序和deps的顺序一致
+	var mapToArray = function(deps,map){
+		var arr = [];
+
+		for(var i=0,len=deps.length; i<len; i++){
+			arr.push( map[deps[i]] );
+		}
+
+		return arr;
+	};
+
+
 	var loadModules = function(deps,callback){
 
-		var depCount = 0;
-		var loadedCount = 0;
+		var loadedDepsCount = 0;  // 已加载完成的deps num
+		var modules = null;
 
 		for (var i=0, len=deps.length; i<len; i++){
 
-			depCount ++ ;
-
 			loadModule(deps[i], function(){
-				loadedCount ++;
+				
+				// 关键代码： 每次script.onload完成 执行loadedDepsCount ++
+				loadedDepsCount ++; 
 
-				if( loadedCount == depCount){
-					callback();
+				console.log( 'loadedDepsCount' , loadedDepsCount)
+
+				if( loadedDepsCount == len ){
+
+					modules = mapToArray(deps,moduleMap);
+
+					callback(modules);
 				}
 
 			});
@@ -56,8 +84,6 @@
 	};
 
 	var define = function(name, deps, callback){
-
-		var depCount = 0;
 
 		// anonymous modules
 		if(typeof name != 'string'){ 
@@ -74,8 +100,9 @@
 
 		if(deps.length){
 			
-			loadModules(deps,function(m){
-				moduleCache = callback(m);
+			// 所有的deps加载完成，执行callback，并将缓存的modules作为参数传入
+			loadModules(deps,function(modules){
+				moduleCache = callback.apply(window,modules);
 			});
 
 		}else{
@@ -86,5 +113,3 @@
 	window.define = define;
 
 })(window);
-
-// 推荐 https://github.com/sxzhangjia/tinyblog/blob/v1/static/js/g.js
