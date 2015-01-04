@@ -4,11 +4,6 @@
  * 定义模块 define(id?, deps, factory)
  * 加载模块 require(deps,factory)
  *
- * 所有的依赖声明方式为：依赖前置，占不支持 （这种方式需要 factory.toString() 使用正则去分析依赖，并将依赖文件预加载）
- * var module = require('mod1') 
- * define( function(){
- * 	require('mod1',function(mod1){})
- * })
  */
 
 var define;
@@ -30,6 +25,9 @@ var require;
 
 	// 模块映射 { 'a.js' : 'a' , 'b.js' : b}
 	var moduleMap = {};
+
+	// 回调函数队列
+	var globalDefQueue = [];
 
 	/**
 	 * 将 [moduleName + '.extension'] 形式的字符串转为url  for script src
@@ -136,11 +134,14 @@ var require;
 
 				console.log('deps=',deps, 'totalDepsCount=',len,  'loadedDepsCount=' , loadedDepsCount)
 
-				if( loadedDepsCount == len && currentModuleCache){
+				if( loadedDepsCount == len ){
 
 					modules = mapToArray(deps,moduleMap);
 
-					callback(modules);
+					//callback(modules);
+					globalDefQueue.push( [modules, callback] );
+
+					console.log(111,globalDefQueue)
 				}
 
 			});
