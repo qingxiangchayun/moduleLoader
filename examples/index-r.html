@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>mini-requirejs</title>
-<script type="text/javascript" src="../mini-require.js"></script>
+<script type="text/javascript" src="../require.js"></script>
 </head>
 <body>
 
@@ -27,11 +27,12 @@ d.js return 'd' deps -> e.js return 'e' deps -> f.js return 'f'
 
 require.config({
     //baseUrl : 'http://192.168.3.191:8000/examples/',
-    urlArgs : '?v=20150104'
+    urlArgs : '?v=20150104',
+    waitSeconds : 0
 });
  
-define(['global','c','b','a'],function(global,c,b,a){
-    console.log(global.add(c,b,a));
+require(['global','d'],function(global,d){
+    console.log(global.add(d));
 });
 
 

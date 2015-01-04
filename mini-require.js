@@ -1,3 +1,16 @@
+/**
+ * 一个AMD的模块加载器
+ * API
+ * 定义模块 define(id?, deps, factory)
+ * 加载模块 require(deps,factory)
+ *
+ * 所有的依赖声明方式为：依赖前置，占不支持 （这种方式需要 factory.toString() 使用正则去分析依赖，并将依赖文件预加载）
+ * var module = require('mod1') 
+ * define( function(){
+ * 	require('mod1',function(mod1){})
+ * })
+ */
+
 var define;
 var require; 
 
@@ -5,6 +18,7 @@ var require;
 	
 	'use strict';
 
+	// 配置参数
 	var requireConf = {
 		baseUrl : './',
 		paths : {},
@@ -25,12 +39,10 @@ var require;
 	var toUrl = function(source){
 		var url = source;
 
-		console.log(requireConf.baseUrl)
-
 		// 相对路径时，添加baseUrl
-		//if (!/^([a-z]{2,10}:\/)?\//i.test(url)) {
+		if (!/^([a-z]{2,10}:\/)?\//i.test(url)) {
 			url = requireConf.baseUrl + url;
-		//}
+		}
 
 		// lib/jquery.js?v=version
 		if(requireConf.urlArgs){
@@ -47,6 +59,10 @@ var require;
 	 */
 	var loadModule = function(id,callback){
 
+		if(moduleMap[id]){
+			return; 
+		}
+
 		var oScript = document.createElement('script');
 		oScript.type = 'text/javascript';
 		oScript.src = toUrl( id + '.js');
@@ -61,14 +77,12 @@ var require;
 		oScript.onload = function(){
 			var moduleName = this.getAttribute('data-modulename');
 
-			console.log('id',id)
-
-			// 关键代码 script onload完成 取缓存
+			// 关键代码 define 中的factory 解析执行 return moduleCache， script onload完成 取缓存
 			moduleMap[moduleName] = moduleCache;  
 
-			console.log('moduleCache==',moduleCache);
+			console.log('moduleName=',id, ' ', 'moduleCache=',moduleCache);
 
-			callback(moduleName, moduleCache);
+			callback(moduleCache);
 
 			moduleCache = null;
 		}
@@ -76,9 +90,15 @@ var require;
 	};
 
 
-	// define(id?,deps?,factory(mod1,mod2){});
-
-	// { 'a.js' : 'a' , 'b.js' : b} --> ['a','b']  a/b的顺序和deps的顺序一致
+	/**
+	 * 把对象转成数组
+	 * define(id?,deps?,factory(mod1,mod2){});
+	 * { 'a.js' : 'a' , 'b.js' : b} --> ['a','b']  a/b的顺序和deps的顺序一致
+	 * 
+	 * @param  {[Array]} deps 模块依赖
+	 * @param  {[Object]} map  moduleMap
+	 * @return {[Array]}       array
+	 */
 	var mapToArray = function(deps,map){
 		var arr = [];
 
@@ -89,6 +109,17 @@ var require;
 		return arr;
 	};
 
+	/**
+	 * 回调函数入栈 
+	 * @param  {Function} callback 回调函数
+	 * @return {[Array]}  callback list
+	 */
+	var pushStack = function(callback){
+		var arr = [];
+		arr.push(callback);
+
+		return arr;
+	};
 
 	var loadModules = function(deps,callback){
 
@@ -97,14 +128,15 @@ var require;
 
 		for (var i=0, len=deps.length; i<len; i++){
 
-			loadModule(deps[i], function(){
+			// currentModuleCache load module时的moduleCache 
+			loadModule(deps[i], function(currentModuleCache){
 				
 				// 关键代码： 每次script.onload完成 执行loadedDepsCount ++
 				loadedDepsCount ++; 
 
-				console.log( 'loadedDepsCount' , loadedDepsCount)
+				console.log('deps=',deps, 'totalDepsCount=',len,  'loadedDepsCount=' , loadedDepsCount)
 
-				if( loadedDepsCount == len ){
+				if( loadedDepsCount == len && currentModuleCache){
 
 					modules = mapToArray(deps,moduleMap);
 
@@ -139,7 +171,7 @@ var require;
 
 		if(deps.length){
 			
-			// 所有的deps加载完成，执行factory，并将缓存的modules作为参数传入
+			// deps加载完成，执行factory，并将缓存的modules作为参数传入
 			loadModules(deps,function(modules){
 				moduleCache = factory.apply(window,modules);
 			});
@@ -148,7 +180,7 @@ var require;
 			moduleCache = factory();
 		}
 
-		console.log( document.currentScript )
+		console.log( 'currentScript:', document.currentScript )
 	};
 
 	/**
@@ -198,7 +230,6 @@ var require;
 		if(conf){
 			extend( requireConf, conf, true )
 		}
-		console.log(requireConf)
 	};
 	
 	window.define = define;
