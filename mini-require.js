@@ -25,10 +25,12 @@ var require;
 	var toUrl = function(source){
 		var url = source;
 
+		console.log(requireConf.baseUrl)
+
 		// 相对路径时，添加baseUrl
-		if (!/^([a-z]{2,10}:\/)?\//i.test(url)) {
+		//if (!/^([a-z]{2,10}:\/)?\//i.test(url)) {
 			url = requireConf.baseUrl + url;
-		}
+		//}
 
 		// lib/jquery.js?v=version
 		if(requireConf.urlArgs){
@@ -175,7 +177,7 @@ var require;
 	            if(typeof clone[key] === 'object'){
 	                extend(deep,target[key],clone[key]);
 	            }else{
-	                target[key] == clone[key];
+	                target[key] = clone[key];
 	            }
 	        }
 
@@ -196,9 +198,11 @@ var require;
 		if(conf){
 			extend( requireConf, conf, true )
 		}
+		console.log(requireConf)
 	};
 	
 	window.define = define;
+	window.require = require;
 
 
 })(window);

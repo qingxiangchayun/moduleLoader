@@ -18,6 +18,11 @@ b.js return 2
 a.js return 1  deps  aa.js return 11
 
 */
+
+require.config({
+    baseUrl : 'http://192.168.3.191:8000/examples/',
+    urlArgs : '?v=20150104'
+});
  
 define(['global','c','b','a'],function(global,c,b,a){
     console.log(global.add(c,b,a));
